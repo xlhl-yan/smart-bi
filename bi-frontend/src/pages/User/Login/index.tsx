@@ -1,6 +1,6 @@
-import { Footer } from '@/components';
-import { login } from '@/services/ant-design-pro/api';
-import { getFakeCaptcha } from '@/services/ant-design-pro/login';
+import {Footer} from '@/components';
+import {login} from '@/services/ant-design-pro/api';
+import {getFakeCaptcha} from '@/services/ant-design-pro/login';
 import {
   AlipayCircleOutlined,
   LockOutlined,
@@ -15,14 +15,16 @@ import {
   ProFormCheckbox,
   ProFormText,
 } from '@ant-design/pro-components';
-import { useEmotionCss } from '@ant-design/use-emotion-css';
-import { Helmet, history, useModel } from '@umijs/max';
-import { Alert, Tabs, message } from 'antd';
-import React, { useState } from 'react';
-import { flushSync } from 'react-dom';
+import {useEmotionCss} from '@ant-design/use-emotion-css';
+import {Helmet, history, useModel} from '@umijs/max';
+import {Alert, Tabs, message} from 'antd';
+import React, {useEffect, useState} from 'react';
+import {flushSync} from 'react-dom';
 import Settings from '../../../../config/defaultSettings';
+import {listChartByPageUsingPOST} from "@/services/smart-bi/chartController";
+
 const ActionIcons = () => {
-  const langClassName = useEmotionCss(({ token }) => {
+  const langClassName = useEmotionCss(({token}) => {
     return {
       marginLeft: '8px',
       color: 'rgba(0, 0, 0, 0.2)',
@@ -37,14 +39,14 @@ const ActionIcons = () => {
   });
   return (
     <>
-      <AlipayCircleOutlined key="AlipayCircleOutlined" className={langClassName} />
-      <TaobaoCircleOutlined key="TaobaoCircleOutlined" className={langClassName} />
-      <WeiboCircleOutlined key="WeiboCircleOutlined" className={langClassName} />
+      <AlipayCircleOutlined key="AlipayCircleOutlined" className={langClassName}/>
+      <TaobaoCircleOutlined key="TaobaoCircleOutlined" className={langClassName}/>
+      <WeiboCircleOutlined key="WeiboCircleOutlined" className={langClassName}/>
     </>
   );
 };
 const Lang = () => {
-  const langClassName = useEmotionCss(({ token }) => {
+  const langClassName = useEmotionCss(({token}) => {
     return {
       width: 42,
       height: 42,
@@ -61,7 +63,7 @@ const Lang = () => {
 };
 const LoginMessage: React.FC<{
   content: string;
-}> = ({ content }) => {
+}> = ({content}) => {
   return (
     <Alert
       style={{
@@ -76,7 +78,7 @@ const LoginMessage: React.FC<{
 const Login: React.FC = () => {
   const [userLoginState, setUserLoginState] = useState<API.LoginResult>({});
   const [type, setType] = useState<string>('account');
-  const { initialState, setInitialState } = useModel('@@initialState');
+  const {initialState, setInitialState} = useModel('@@initialState');
   const containerClassName = useEmotionCss(() => {
     return {
       display: 'flex',
@@ -99,6 +101,12 @@ const Login: React.FC = () => {
       });
     }
   };
+
+  useEffect(() => {
+    listChartByPageUsingPOST({}).then(res => {
+      console.log("res:", res)
+    })
+  })
   const handleSubmit = async (values: API.LoginParams) => {
     try {
       // 登录
@@ -123,7 +131,7 @@ const Login: React.FC = () => {
       message.error(defaultLoginFailureMessage);
     }
   };
-  const { status, type: loginType } = userLoginState;
+  const {status, type: loginType} = userLoginState;
   return (
     <div className={containerClassName}>
       <Helmet>
@@ -131,7 +139,7 @@ const Login: React.FC = () => {
           {'登录'}- {Settings.title}
         </title>
       </Helmet>
-      <Lang />
+      <Lang/>
       <div
         style={{
           flex: '1',
@@ -143,13 +151,13 @@ const Login: React.FC = () => {
             minWidth: 280,
             maxWidth: '75vw',
           }}
-          logo={<img alt="logo" src="/logo.svg" />}
+          logo={<img alt="logo" src="/logo.svg"/>}
           title="Ant Design"
           subTitle={'Ant Design 是西湖区最具影响力的 Web 设计规范'}
           initialValues={{
             autoLogin: true,
           }}
-          actions={['其他登录方式 :', <ActionIcons key="icons" />]}
+          actions={['其他登录方式 :', <ActionIcons key="icons"/>]}
           onFinish={async (values) => {
             await handleSubmit(values as API.LoginParams);
           }}
@@ -171,7 +179,7 @@ const Login: React.FC = () => {
           />
 
           {status === 'error' && loginType === 'account' && (
-            <LoginMessage content={'错误的用户名和密码(admin/ant.design)'} />
+            <LoginMessage content={'错误的用户名和密码(admin/ant.design)'}/>
           )}
           {type === 'account' && (
             <>
@@ -179,7 +187,7 @@ const Login: React.FC = () => {
                 name="username"
                 fieldProps={{
                   size: 'large',
-                  prefix: <UserOutlined />,
+                  prefix: <UserOutlined/>,
                 }}
                 placeholder={'用户名: admin or user'}
                 rules={[
@@ -193,7 +201,7 @@ const Login: React.FC = () => {
                 name="password"
                 fieldProps={{
                   size: 'large',
-                  prefix: <LockOutlined />,
+                  prefix: <LockOutlined/>,
                 }}
                 placeholder={'密码: ant.design'}
                 rules={[
@@ -206,13 +214,13 @@ const Login: React.FC = () => {
             </>
           )}
 
-          {status === 'error' && loginType === 'mobile' && <LoginMessage content="验证码错误" />}
+          {status === 'error' && loginType === 'mobile' && <LoginMessage content="验证码错误"/>}
           {type === 'mobile' && (
             <>
               <ProFormText
                 fieldProps={{
                   size: 'large',
-                  prefix: <MobileOutlined />,
+                  prefix: <MobileOutlined/>,
                 }}
                 name="mobile"
                 placeholder={'请输入手机号！'}
@@ -230,7 +238,7 @@ const Login: React.FC = () => {
               <ProFormCaptcha
                 fieldProps={{
                   size: 'large',
-                  prefix: <LockOutlined />,
+                  prefix: <LockOutlined/>,
                 }}
                 captchaProps={{
                   size: 'large',
@@ -279,7 +287,7 @@ const Login: React.FC = () => {
           </div>
         </LoginForm>
       </div>
-      <Footer />
+      <Footer/>
     </div>
   );
 };
