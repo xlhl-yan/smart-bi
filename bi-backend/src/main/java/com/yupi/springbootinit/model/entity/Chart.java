@@ -7,14 +7,14 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * 用户
+ * 图标信息表
  *
  * @author xlhl
- * @TableName user
+ * @TableName chart
  */
-@TableName(value = "user")
+@TableName(value = "chart")
 @Data
-public class User implements Serializable {
+public class Chart implements Serializable {
     /**
      * id
      */
@@ -22,40 +22,40 @@ public class User implements Serializable {
     private Long id;
 
     /**
-     * 账号
+     * 分析目标
      */
-    @TableField(value = "userAccount")
-    private String userAccount;
+    @TableField(value = "goal")
+    private String goal;
 
     /**
-     * 密码
+     * 图标原始信息
      */
-    @TableField(value = "userPassword")
-    private String userPassword;
+    @TableField(value = "chartData")
+    private String chartData;
 
     /**
-     * 用户昵称
+     * 创建人id
      */
-    @TableField(value = "userName")
-    private String userName;
+    @TableField(value = "userId")
+    private Long userId;
 
     /**
-     * 用户头像
+     * 图标信息
      */
-    @TableField(value = "userAvatar")
-    private String userAvatar;
+    @TableField(value = "charType")
+    private String charType;
 
     /**
-     * 用户简介
+     * AI 生成图表信息
      */
-    @TableField(value = "userProfile")
-    private String userProfile;
+    @TableField(value = "genChart")
+    private String genChart;
 
     /**
-     * 用户角色：user/admin
+     * AI 生成分析结论
      */
-    @TableField(value = "userRole")
-    private String userRole;
+    @TableField(value = "genResult")
+    private String genResult;
 
     /**
      * 创建时间

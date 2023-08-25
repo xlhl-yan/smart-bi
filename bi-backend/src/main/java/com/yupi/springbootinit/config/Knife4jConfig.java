@@ -26,8 +26,8 @@ public class Knife4jConfig {
     public Docket defaultApi2() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .apiInfo(new ApiInfoBuilder()
-                        .title("接口文档")
-                        .description("springboot-init")
+                        .title("智能 BI")
+                        .description("smart-bi")
                         .version("1.0")
                         .build())
                 .select()
