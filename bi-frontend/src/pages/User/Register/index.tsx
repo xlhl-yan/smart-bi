@@ -1,14 +1,11 @@
 import { Footer } from '@/components';
-import { listChartByPageUsingPOST } from '@/services/smart-bi/chartController';
-import { getLoginUserUsingGET, userLoginUsingPOST } from '@/services/smart-bi/userController';
-import { Link } from '@@/exports';
+import { userRegisterUsingPOST } from '@/services/smart-bi/userController';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { LoginForm, ProFormText } from '@ant-design/pro-components';
 import { useEmotionCss } from '@ant-design/use-emotion-css';
 import { Helmet, history, useModel } from '@umijs/max';
 import { Tabs, message } from 'antd';
-import React, { useEffect, useState } from 'react';
-import { flushSync } from 'react-dom';
+import React, { useState } from 'react';
 import Settings from '../../../../config/defaultSettings';
 
 const Login: React.FC = () => {
@@ -26,28 +23,16 @@ const Login: React.FC = () => {
       backgroundSize: '100% 100%',
     };
   });
-  const fetchUserInfo = async () => {
-    const userInfo = await getLoginUserUsingGET();
-    if (userInfo) {
-      flushSync(() => {
-        setInitialState((s) => ({
-          ...s,
-          currentUser: userInfo,
-        }));
-      });
-    }
-  };
 
-  const handleSubmit = async (values: API.UserLoginRequest) => {
+  const handleSubmit = async (values: API.UserRegisterRequest) => {
     try {
-      // 登录
-      const msg = await userLoginUsingPOST(values);
+      // 注册
+      const msg = await userRegisterUsingPOST(values);
       if (msg.code === 0) {
-        const defaultLoginSuccessMessage = '登录成功！';
+        alert(1);
+        const defaultLoginSuccessMessage = '注册成功！';
         message.success(defaultLoginSuccessMessage);
-        await fetchUserInfo();
-        const urlParams = new URL(window.location.href).searchParams;
-        history.push(urlParams.get('redirect') || '/');
+        history.push('/user/login');
         return;
       } else {
         message.error(msg.message);
@@ -56,17 +41,16 @@ const Login: React.FC = () => {
       // 如果失败去设置用户错误信息
       setUserLoginState(msg);
     } catch (error) {
-      const defaultLoginFailureMessage = '登录失败，请重试！';
+      const defaultLoginFailureMessage = '注册失败，请重试！';
       console.log(error);
       message.error(defaultLoginFailureMessage);
     }
   };
-  const { status, type: loginType } = userLoginState;
   return (
     <div className={containerClassName}>
       <Helmet>
         <title>
-          {'登录'}- {Settings.title}
+          {'注册'}- {Settings.title}
         </title>
       </Helmet>
       <div
@@ -76,6 +60,11 @@ const Login: React.FC = () => {
         }}
       >
         <LoginForm
+          submitter={{
+            searchConfig: {
+              submitText: '注册'
+            },
+          }}
           contentStyle={{
             minWidth: 280,
             maxWidth: '75vw',
@@ -88,7 +77,7 @@ const Login: React.FC = () => {
             </a>
           }
           onFinish={async (values) => {
-            await handleSubmit(values as API.UserLoginRequest);
+            await handleSubmit(values as API.UserRegisterRequest);
           }}
         >
           <Tabs
@@ -98,7 +87,7 @@ const Login: React.FC = () => {
             items={[
               {
                 key: 'account',
-                label: '账户密码登录',
+                label: '账户密码注册',
               },
             ]}
           />
@@ -133,6 +122,20 @@ const Login: React.FC = () => {
                   },
                 ]}
               />
+              <ProFormText.Password
+                name="checkPassword"
+                fieldProps={{
+                  size: 'large',
+                  prefix: <LockOutlined />,
+                }}
+                placeholder={'确认密码'}
+                rules={[
+                  {
+                    required: true,
+                    message: '确认密码是必填项！',
+                  },
+                ]}
+              />
             </>
           )}
 
@@ -140,9 +143,7 @@ const Login: React.FC = () => {
             style={{
               marginBottom: 24,
             }}
-          >
-            <Link to={'/user/register'}>注册</Link>
-          </div>
+          ></div>
         </LoginForm>
       </div>
       <Footer />
