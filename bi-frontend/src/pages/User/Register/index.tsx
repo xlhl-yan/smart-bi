@@ -62,7 +62,7 @@ const Login: React.FC = () => {
         <LoginForm
           submitter={{
             searchConfig: {
-              submitText: '注册'
+              submitText: '注册',
             },
           }}
           contentStyle={{

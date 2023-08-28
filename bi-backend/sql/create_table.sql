@@ -20,9 +20,10 @@ create table if not exists user
 create table if not exists chart
 (
     id         bigint auto_increment comment 'id' primary key,
+    name       varchar(512)                       null comment '图表名称',
     goal       varchar(256)                       null comment '分析目标',
     chartData  text                               null comment '图标原始信息',
-    charType   varchar(128)                       null comment '图标信息',
+    chartType   varchar(128)                       null comment '图标信息',
     userId     bigint                             null comment '创建人id',
     genChart   text                               null comment 'AI 生成图表信息',
     genResult  text                               null comment 'AI 生成分析结论',

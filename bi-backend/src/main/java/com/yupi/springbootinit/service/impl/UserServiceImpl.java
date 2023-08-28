@@ -15,7 +15,6 @@ import com.yupi.springbootinit.model.vo.UserVO;
 import com.yupi.springbootinit.service.UserService;
 import com.yupi.springbootinit.utils.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
-import me.chanjar.weixin.common.bean.WxOAuth2UserInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -31,8 +30,8 @@ import static com.yupi.springbootinit.constant.UserConstant.USER_LOGIN_STATE;
 /**
  * 用户服务实现
  *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://yupi.icu">编程导航知识星球</a>
+ * @author xlhl
+ * 
  */
 @Service
 @Slf4j

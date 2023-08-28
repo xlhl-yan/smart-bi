@@ -77,11 +77,6 @@ wx:
         host: 127.0.0.1
         port: 6379
       type: Memory
-  # 微信开放平台
-  # todo 需替换配置
-  open:
-    appId: xxx
-    appSecret: xxx
 # 对象存储
 # todo 需替换配置
 cos:
@@ -90,3 +85,7 @@ cos:
     secretKey: xxx
     region: xxx
     bucket: xxx
+yuapi:
+  client:
+    access-key: ergm72hhly7y20zza9hentgz4g4ycpc1
+    secret-key: y66fwjsie2x4vd9qx72isas0sz9uxt5d

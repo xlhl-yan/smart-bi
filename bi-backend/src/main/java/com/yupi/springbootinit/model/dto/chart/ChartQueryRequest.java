@@ -21,6 +21,11 @@ public class ChartQueryRequest extends PageRequest implements Serializable {
     private Long id;
 
     /**
+     * 图表名称
+     */
+    private String name;
+
+    /**
      * 分析目标
      */
     private String goal;
@@ -33,7 +38,7 @@ public class ChartQueryRequest extends PageRequest implements Serializable {
     /**
      * 图标信息
      */
-    private String charType;
+    private String chartType;
 
     private static final long serialVersionUID = 1L;
 }

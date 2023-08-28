@@ -22,6 +22,12 @@ public class Chart implements Serializable {
     private Long id;
 
     /**
+     * 图表名称
+     */
+    @TableField(value = "name")
+    private String name;
+
+    /**
      * 分析目标
      */
     @TableField(value = "goal")
@@ -42,8 +48,8 @@ public class Chart implements Serializable {
     /**
      * 图标信息
      */
-    @TableField(value = "charType")
-    private String charType;
+    @TableField(value = "chartType")
+    private String chartType;
 
     /**
      * AI 生成图表信息

@@ -1,5 +1,4 @@
 import { Footer } from '@/components';
-import { listChartByPageUsingPOST } from '@/services/smart-bi/chartController';
 import { getLoginUserUsingGET, userLoginUsingPOST } from '@/services/smart-bi/userController';
 import { Link } from '@@/exports';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';

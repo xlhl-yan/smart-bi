@@ -23,12 +23,15 @@ public class ChartAddRequest implements Serializable {
      */
     private String chartData;
 
-
+    /**
+     * 图表名称
+     */
+    private String name;
 
     /**
      * 图标信息
      */
-    private String charType;
+    private String chartType;
 
     private static final long serialVersionUID = 1L;
 }
