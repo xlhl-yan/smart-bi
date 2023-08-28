@@ -6,8 +6,10 @@ import com.alibaba.excel.support.ExcelTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.ResourceUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -63,6 +65,11 @@ public class ExcelUtils {
     }
 
     public static void main(String[] args) {
-        System.out.println(excelToCsv(null));
+        try {
+            File file = ResourceUtils.getFile("classpath:测试数据.xlsx");
+            System.out.println(excelToCsv((MultipartFile) file));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

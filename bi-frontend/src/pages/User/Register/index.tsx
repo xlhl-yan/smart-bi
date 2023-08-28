@@ -29,21 +29,18 @@ const Login: React.FC = () => {
       // 注册
       const msg = await userRegisterUsingPOST(values);
       if (msg.code === 0) {
-        alert(1);
         const defaultLoginSuccessMessage = '注册成功！';
-        message.success(defaultLoginSuccessMessage);
+        message.success(defaultLoginSuccessMessage, 5);
         history.push('/user/login');
         return;
       } else {
-        message.error(msg.message);
+        message.error(msg.message, 5);
       }
       console.log(msg);
       // 如果失败去设置用户错误信息
       setUserLoginState(msg);
     } catch (error) {
-      const defaultLoginFailureMessage = '注册失败，请重试！';
-      console.log(error);
-      message.error(defaultLoginFailureMessage);
+      message.error(error.message, 5);
     }
   };
   return (

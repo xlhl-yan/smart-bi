@@ -11,12 +11,18 @@
   {
     path: '/',
     redirect: '/add/chart',
-    name: '主页',
   },
   {
     path: '/add/chart',
     name: '分析',
+    icon:'AreaChart',
     component: './User/AddChart',
+  },
+  {
+    path: '/my/chart',
+    name: '我的图表',
+    icon:'PieChart',
+    component: './User/MyChart',
   },
   {
     path: '/admin',

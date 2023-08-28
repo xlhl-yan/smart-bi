@@ -1,5 +1,6 @@
 package com.yupi.springbootinit.controller;
 
+import cn.hutool.core.io.FileUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yupi.springbootinit.annotation.AuthCheck;
@@ -12,6 +13,7 @@ import com.yupi.springbootinit.constant.UserConstant;
 import com.yupi.springbootinit.exception.BusinessException;
 import com.yupi.springbootinit.exception.ThrowUtils;
 import com.yupi.springbootinit.manager.AiManager;
+import com.yupi.springbootinit.manager.RedisLimiterManager;
 import com.yupi.springbootinit.model.dto.chart.*;
 import com.yupi.springbootinit.model.entity.Chart;
 import com.yupi.springbootinit.model.entity.User;
@@ -29,6 +31,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * 图表接口
@@ -49,6 +53,18 @@ public class ChartController {
     @Resource
     private AiManager aiManager;
 
+    @Resource
+    private RedisLimiterManager redisLimiterManager;
+    /**
+     * 文件大小 1 MB
+     */
+    private static final long FILE_MAX_SIZE = 1024 * 1024;
+
+    /**
+     * 文件后缀名
+     */
+    private static final List<String> SUFFIX_LIST = Arrays.asList("xlsx", "csv", "xls");
+
     /**
      * 分析
      *
@@ -58,9 +74,13 @@ public class ChartController {
      * @return
      */
     @PostMapping("/gen")
-    public BaseResponse<BiResponse> genChartsByAi(@RequestPart("file") MultipartFile multipartFile,
-                                                  GenChartByAiRequest genChartByAiRequest,
-                                                  HttpServletRequest request) {
+    public BaseResponse<BiResponse> genChartByAi(@RequestPart("file") MultipartFile multipartFile,
+                                                 GenChartByAiRequest genChartByAiRequest,
+                                                 HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
+        redisLimiterManager.doRateLimit(String.format("genChartByAi_%s", loginUser.getId()), 1L);
+
         //  校验
         String name = genChartByAiRequest.getName();
         String goal = genChartByAiRequest.getGoal();
@@ -69,8 +89,14 @@ public class ChartController {
         ThrowUtils.throwIf(StringUtils.isBlank(name) || name.length() >= 100, ErrorCode.PARAMS_ERROR, "名称过长");
         ThrowUtils.throwIf(StringUtils.isBlank(goal), ErrorCode.PARAMS_ERROR, "目标不能为空");
 
-        User loginUser = userService.getLoginUser(request);
-        ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
+        //  校验文件大小
+        long filesize = multipartFile.getSize();
+        String filename = multipartFile.getOriginalFilename();
+        ThrowUtils.throwIf(filesize > FILE_MAX_SIZE, ErrorCode.PARAMS_ERROR, "文件过大");
+
+        //  文件后缀
+        String suffix = FileUtil.getSuffix(filename);
+        ThrowUtils.throwIf(!SUFFIX_LIST.contains(suffix), ErrorCode.PARAMS_ERROR, "文件类型不符合要求");
 
         //  读取用户上传文件 并压缩为 CSV
         String csv = ExcelUtils.excelToCsv(multipartFile);
@@ -102,7 +128,6 @@ public class ChartController {
         biResponse.setGenChart(genChart);
         biResponse.setGenResult(genResult);
 
-
         //  插入数据到数据库
         Chart chart = new Chart();
         chart.setName(name);
@@ -118,28 +143,6 @@ public class ChartController {
         ThrowUtils.throwIf(!save, ErrorCode.SYSTEM_ERROR, "数据保存失败");
 
         return ResultUtils.success(biResponse);
-
-//        User loginUser = userService.getLoginUser(request);
-//        // 文件目录：根据业务、用户来划分
-//        String uuid = RandomStringUtils.randomAlphanumeric(8);
-//        String filename = uuid + "-" + multipartFile.getOriginalFilename();
-//        String filepath = String.format("/%s/%s", loginUser.getId(), filename);
-//        File file = null;
-//        try {
-//            // 上传文件
-//            // 返回可访问地址
-//        } catch (Exception e) {
-//            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败");
-//        } finally {
-//            if (file != null) {
-//                // 删除临时文件
-//                boolean delete = file.delete();
-//                if (!delete) {
-//                    log.error("file delete error, filepath = {}", filepath);
-//                }
-//            }
-//        }
-//        return null;
     }
 
     // region 增删改查
