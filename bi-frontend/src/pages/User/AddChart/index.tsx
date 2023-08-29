@@ -1,4 +1,4 @@
-import { genChartsByAiUsingPOST } from '@/services/smart-bi/chartController';
+import {genChartByAiSyncUsingPOST, genChartsByAiUsingPOST} from '@/services/smart-bi/chartController';
 import { UploadOutlined } from '@ant-design/icons';
 import {
   Button,
@@ -23,12 +23,12 @@ import React, { useState } from 'react';
  * @constructor
  */
 const AddChart: React.FC = () => {
-  const [Chart, setChart] = useState<JSON>();
-  const [Option, setOption] = useState<API.BiResponse>();
-  const [Loading, setLoading] = useState<boolean>(false);
+  const [chart, setChart] = useState<JSON>();
+  const [option, setOption] = useState<API.BiResponse>();
+  const [loading, setLoading] = useState<boolean>(false);
   const onFinish = async (values: any) => {
     //  避免重复提交
-    if (Loading) {
+    if (loading) {
       return;
     }
     setLoading(true);
@@ -40,7 +40,7 @@ const AddChart: React.FC = () => {
     };
     try {
       //todo 文件上传到大小限制
-      const res = await genChartsByAiUsingPOST(params, {}, values.file.file.originFileObj);
+      const res = await genChartByAiSyncUsingPOST(params, {}, values.file.file.originFileObj);
       if (!res?.data) {
         throw new Error(res?.message);
       }
@@ -58,7 +58,7 @@ const AddChart: React.FC = () => {
     setLoading(false);
   };
   return (
-    <div className="addChart">
+    <div className="add-chart">
       <Row gutter={24}>
         <Col span={12}>
           <Card title={'智能分析'}>
@@ -102,10 +102,10 @@ const AddChart: React.FC = () => {
 
               <Form.Item wrapperCol={{ span: 12, offset: 9 }}>
                 <Space>
-                  <Button type="primary" htmlType="submit" loading={Loading} disabled={Loading}>
+                  <Button type="primary" htmlType="submit" loading={loading} disabled={loading}>
                     提交
                   </Button>
-                  <Button htmlType="reset" disabled={Loading}>
+                  <Button htmlType="reset" disabled={loading}>
                     重置
                   </Button>
                 </Space>
@@ -116,15 +116,15 @@ const AddChart: React.FC = () => {
         <Col span={12}>
           <Card title={'分析结论：'}>
             <div>
-              {Option?.genResult ?? <div>请在左侧提交信息后查看</div>}
-              {<Spin spinning={Loading} />}
+              {option?.genResult ?? <div>请在左侧提交信息后查看</div>}
+              {<Spin spinning={loading} />}
             </div>
           </Card>
           <Divider />
           <Card title={'生成图标：'}>
             <div>
-              {Chart ? <ReactECharts option={Chart} /> : <div>请在左侧提交信息后查看</div>}
-              {<Spin spinning={Loading} />}
+              {chart ? <ReactECharts option={chart} /> : <div>请在左侧提交信息后查看</div>}
+              {<Spin spinning={loading} />}
             </div>
           </Card>
         </Col>

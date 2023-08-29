@@ -17,17 +17,23 @@ create table if not exists user
 ) comment '用户' collate = utf8mb4_unicode_ci;
 
 
-create table if not exists chart
+-- auto-generated definition
+create table chart
 (
-    id         bigint auto_increment comment 'id' primary key,
-    name       varchar(512)                       null comment '图表名称',
-    goal       varchar(256)                       null comment '分析目标',
-    chartData  text                               null comment '图标原始信息',
+    id          bigint auto_increment comment 'id'
+        primary key,
+    name        varchar(512)                       null comment '图表名称',
+    goal        varchar(256)                       null comment '分析目标',
+    execMessage text                               null comment '执行信息 主要保存失败信息',
+    status      tinyint  default 0                 null comment '任务的状态 0-成功 1-失败 2-执行中 3-未执行',
+    chartData   text                               null comment '图标原始信息',
     chartType   varchar(128)                       null comment '图标信息',
-    userId     bigint                             null comment '创建人id',
-    genChart   text                               null comment 'AI 生成图表信息',
-    genResult  text                               null comment 'AI 生成分析结论',
-    createTime datetime default CURRENT_TIMESTAMP not null comment '创建时间',
-    updateTime datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
-    isDelete   tinyint  default 0                 not null comment '是否删除'
+    userId      bigint                             null comment '创建人id',
+    genChart    text                               null comment 'AI 生成图表信息',
+    genResult   text                               null comment 'AI 生成分析结论',
+    createTime  datetime default CURRENT_TIMESTAMP not null comment '创建时间',
+    updateTime  datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    isDelete    tinyint  default 0                 not null comment '是否删除'
 ) comment '图标信息表' collate = utf8mb4_unicode_ci;
+
+

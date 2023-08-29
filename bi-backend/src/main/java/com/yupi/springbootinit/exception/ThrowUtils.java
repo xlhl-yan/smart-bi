@@ -1,6 +1,7 @@
 package com.yupi.springbootinit.exception;
 
 import com.yupi.springbootinit.common.ErrorCode;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 抛异常工具类

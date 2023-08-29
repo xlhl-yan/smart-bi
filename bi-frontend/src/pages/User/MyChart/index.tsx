@@ -14,9 +14,9 @@ const MyChart: React.FC = () => {
     current: 1,
     pageSize: 4,
   };
-  const [ChartList, setChartList] = useState<API.Chart[]>([]);
-  const [Total, setTotal] = useState<number>(0);
-  const [Loading, setLoading] = useState<boolean>(false);
+  const [chartList, setChartList] = useState<API.Chart[]>([]);
+  const [total, setTotal] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(false);
   const [searchParams, setSearchParams] = useState<API.ChartQueryRequest>({ ...initParams });
   const { initialState } = useModel('@@initialState');
   const { currentUser } = initialState;
@@ -53,7 +53,7 @@ const MyChart: React.FC = () => {
       <div>
         <Search
           placeholder="请输入图表名称"
-          loading={Loading}
+          loading={loading}
           enterButton
           onSearch={(value) => {
             //  设置搜索条件
@@ -75,12 +75,12 @@ const MyChart: React.FC = () => {
           xl: 2,
           xxl: 3,
         }}
-        loading={Loading}
+        loading={loading}
         itemLayout="vertical"
         pagination={{
           current: searchParams.current,
           pageSize: searchParams.pageSize,
-          total: Total,
+          total: total,
           onChange: (page, pageSize) => {
             setSearchParams({
               ...searchParams,
@@ -89,7 +89,7 @@ const MyChart: React.FC = () => {
             });
           },
         }}
-        dataSource={ChartList}
+        dataSource={chartList}
         renderItem={(item) => (
           <List.Item key={item.id}>
             <Card>

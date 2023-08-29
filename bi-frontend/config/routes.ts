@@ -19,6 +19,12 @@
     component: './User/AddChart',
   },
   {
+    path: '/add/chart/async',
+    name: '异步分析',
+    icon:'AreaChart',
+    component: './User/AddChartAsync',
+  },
+  {
     path: '/my/chart',
     name: '我的图表',
     icon:'PieChart',

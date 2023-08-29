@@ -34,6 +34,18 @@ public class Chart implements Serializable {
     private String goal;
 
     /**
+     * 任务的状态 0-成功 1-失败 2-执行中 3-未执行
+     */
+    @TableField(value = "status")
+    private Integer status;
+
+    /**
+     * 执行信息 主要用于保存失败原因
+     */
+    @TableField(value = "execMessage")
+    private String execMessage;
+
+    /**
      * 图标原始信息
      */
     @TableField(value = "chartData")
