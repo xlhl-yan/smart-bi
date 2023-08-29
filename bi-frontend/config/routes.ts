@@ -10,10 +10,10 @@
   { path: '/welcome', name: '欢迎', icon: 'smile', component: './Welcome' },
   {
     path: '/',
-    redirect: '/add/chart',
+    redirect: '/add/chart/sync',
   },
   {
-    path: '/add/chart',
+    path: '/add/chart/sync',
     name: '分析',
     icon:'AreaChart',
     component: './User/AddChart',

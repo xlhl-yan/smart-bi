@@ -1,6 +1,6 @@
 import { listChartByPageUsingPOST } from '@/services/smart-bi/chartController';
 import { useModel } from '@umijs/max';
-import { Avatar, Card, List, message } from 'antd';
+import { Avatar, Card, List, message, Result } from 'antd';
 import Search from 'antd/es/input/Search';
 import ReactECharts from 'echarts-for-react';
 import React, { useEffect, useState } from 'react';
@@ -13,6 +13,8 @@ const MyChart: React.FC = () => {
   const initParams = {
     current: 1,
     pageSize: 4,
+    sortField: 'createTime',
+    sortOrder: 'desc',
   };
   const [chartList, setChartList] = useState<API.Chart[]>([]);
   const [total, setTotal] = useState<number>(0);
@@ -30,6 +32,9 @@ const MyChart: React.FC = () => {
         //  隐藏图表 title
         if (res.data.records) {
           res.data.records.forEach((data) => {
+            if (data.status !== 0) {
+              return;
+            }
             const chartData = JSON.parse(data.genChart ?? '{}');
             chartData.title = undefined;
             data.genChart = JSON.stringify(chartData);
@@ -64,7 +69,7 @@ const MyChart: React.FC = () => {
           }}
         />
       </div>
-      <div className={"margin-16"} />
+      <div className={'margin-16'} />
       <List
         grid={{
           gutter: 16,
@@ -98,11 +103,28 @@ const MyChart: React.FC = () => {
                 title={item.name}
                 description={item.chartType ? '图表类型：' + item.chartType : undefined}
               />
-              {`分析目标是：${item.goal}`}
-            </Card>
-
-            <Card>
-              <ReactECharts option={JSON.parse(item.genChart) ?? '{}'} />
+              <>
+                {Number(item.status) === 0 && (
+                  <>
+                    {' '}
+                    {`分析目标是：${item.goal}`}
+                    <ReactECharts option={JSON.parse(item.genChart) ?? '{}'} />
+                  </>
+                )}
+                {Number(item.status) === 1 && (
+                  <Result status="error" title="图表生成错误" subTitle={item.execMessage} />
+                )}
+                {Number(item.status) === 2 && (
+                  <Result status="info" title="图表生成中" subTitle={item.execMessage} />
+                )}
+                {Number(item.status) === 3 && (
+                  <Result
+                    status="warning"
+                    title="图表待生成"
+                    subTitle={item.execMessage ?? '系统繁忙，请稍后'}
+                  />
+                )}
+              </>
             </Card>
           </List.Item>
         )}

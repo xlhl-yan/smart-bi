@@ -44,6 +44,7 @@ const AddChart: React.FC = () => {
       if (!res?.data) {
         throw new Error(res?.message);
       }
+
       const genChart = JSON.parse(res.data.genChart ?? undefined);
       if (!genChart) {
         throw new Error(res?.message);
