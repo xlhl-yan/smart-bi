@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * 主类（项目启动入口）
+ * 请先执行 src/main/java/com/yupi/springbootinit/mq/biz/BiInitMain.java 初始化队列与交换机
  *
  * @author xlhl
  */
