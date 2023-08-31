@@ -1,4 +1,4 @@
-import { genChartByAiAsyncUsingPOST } from '@/services/smart-bi/chartController';
+import {genChartByAiAsyncMqUsingPOST, genChartByAiAsyncUsingPOST} from '@/services/smart-bi/chartController';
 import { UploadOutlined } from '@ant-design/icons';
 import { Button, Card, Form, Input, Select, Space, Upload, message } from 'antd';
 import { useForm } from 'antd/es/form/Form';
@@ -24,7 +24,7 @@ const AddChartAsync: React.FC = () => {
     };
     try {
       //todo 文件上传到大小限制
-      const res = await genChartByAiAsyncUsingPOST(params, {}, values.file.file.originFileObj);
+      const res = await genChartByAiAsyncMqUsingPOST(params, {}, values.file.file.originFileObj);
       if (!res?.data) {
         throw new Error(res?.message);
       } else {

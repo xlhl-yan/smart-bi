@@ -1,6 +1,6 @@
 import { listChartByPageUsingPOST } from '@/services/smart-bi/chartController';
 import { useModel } from '@umijs/max';
-import { Avatar, Card, List, message, Result } from 'antd';
+import { Avatar, Button, Card, List, message, Result } from 'antd';
 import Search from 'antd/es/input/Search';
 import ReactECharts from 'echarts-for-react';
 import React, { useEffect, useState } from 'react';
@@ -22,6 +22,8 @@ const MyChart: React.FC = () => {
   const [searchParams, setSearchParams] = useState<API.ChartQueryRequest>({ ...initParams });
   const { initialState } = useModel('@@initialState');
   const { currentUser } = initialState;
+  const [idData, setIdData] = useState<[]>([]);
+
   const loadData = async () => {
     setLoading(true);
     try {
@@ -104,10 +106,21 @@ const MyChart: React.FC = () => {
                 description={item.chartType ? '图表类型：' + item.chartType : undefined}
               />
               <>
+                <Button
+                  onClick={() => {
+                    idData.find((e) => e === item.id)
+                      ? setIdData(idData.filter((message) => message !== item.id))
+                      : setIdData([...idData, item.id]);
+
+                  }}
+                  type={'primary'}
+                >
+                  查看原始数据
+                </Button>
                 {Number(item.status) === 0 && (
                   <>
-                    {' '}
                     {`分析目标是：${item.goal}`}
+                    {idData.find((e) => e === item.id) ? <Card>{item.chartData}</Card> : <></>}
                     <ReactECharts option={JSON.parse(item.genChart) ?? '{}'} />
                   </>
                 )}
