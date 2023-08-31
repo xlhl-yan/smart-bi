@@ -22,4 +22,6 @@ public interface CommonConstant {
      * AI 模型 id
      */
     Long BI_MODEL_ID = 1695768463945039874L;
+
+    String REDISSON_KEY = "MyChart_";
 }

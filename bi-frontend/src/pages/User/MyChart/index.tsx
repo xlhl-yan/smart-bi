@@ -1,6 +1,9 @@
-import { listChartByPageUsingPOST } from '@/services/smart-bi/chartController';
+import {
+  listChartByPageUsingPOST, listMyChartByPageUsingPOST,
+  tautologyGenChartByAiAsyncMqUsingPOST,
+} from '@/services/smart-bi/chartController';
 import { useModel } from '@umijs/max';
-import { Avatar, Button, Card, List, message, Result } from 'antd';
+import { Avatar, Button, Card, List, Result, message } from 'antd';
 import Search from 'antd/es/input/Search';
 import ReactECharts from 'echarts-for-react';
 import React, { useEffect, useState } from 'react';
@@ -27,7 +30,7 @@ const MyChart: React.FC = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const res = await listChartByPageUsingPOST(searchParams);
+      const res = await listMyChartByPageUsingPOST(searchParams);
       if (res.code === 0 || res.data) {
         setChartList(res.data?.records ?? []);
         setTotal(res.data?.total);
@@ -99,7 +102,23 @@ const MyChart: React.FC = () => {
         dataSource={chartList}
         renderItem={(item) => (
           <List.Item key={item.id}>
-            <Card>
+            <Card
+              extra={
+                Number(item.status) === 1 && (
+                  <Button
+                    type={'primary'}
+                    danger
+                    onClick={async () => {
+                      await tautologyGenChartByAiAsyncMqUsingPOST({
+                        id: item.id,
+                      });
+                    }}
+                  >
+                    重试
+                  </Button>
+                )
+              }
+            >
               <List.Item.Meta
                 avatar={<Avatar src={currentUser?.userAvatar} />}
                 title={item.name}
@@ -107,16 +126,16 @@ const MyChart: React.FC = () => {
               />
               <>
                 <Button
+                  type={'primary'}
                   onClick={() => {
                     idData.find((e) => e === item.id)
                       ? setIdData(idData.filter((message) => message !== item.id))
                       : setIdData([...idData, item.id]);
-
                   }}
-                  type={'primary'}
                 >
                   查看原始数据
                 </Button>
+                <br />
                 {Number(item.status) === 0 && (
                   <>
                     {`分析目标是：${item.goal}`}
@@ -127,6 +146,7 @@ const MyChart: React.FC = () => {
                 {Number(item.status) === 1 && (
                   <Result status="error" title="图表生成错误" subTitle={item.execMessage} />
                 )}
+
                 {Number(item.status) === 2 && (
                   <Result status="info" title="图表生成中" subTitle={item.execMessage} />
                 )}

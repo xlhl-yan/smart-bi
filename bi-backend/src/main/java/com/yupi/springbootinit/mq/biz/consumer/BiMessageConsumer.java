@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.support.AmqpHeaders;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
@@ -34,6 +35,9 @@ public class BiMessageConsumer {
 
     @Resource
     private AiManager aiManager;
+
+    @Resource
+    private RedisTemplate<String, String> redisTemplate;
 
     /**
      * 程序监听的消息队列和确认机制
@@ -90,6 +94,9 @@ public class BiMessageConsumer {
         ChartStatusEnum success = ChartStatusEnum.SUCCESS;
         updateChart.setStatus(success.getCode());
         boolean updateResult = chartService.updateById(updateChart);
+
+        redisTemplate.delete(CommonConstant.REDISSON_KEY + chart.getId());
+
         if (!updateResult) {
             channel.basicNack(deliveryTag, false, false);
             handlerChartUpdateErrorLog(chart.getId(), String.format("修改图表任务状态为%s时失败", success.getDesc()));

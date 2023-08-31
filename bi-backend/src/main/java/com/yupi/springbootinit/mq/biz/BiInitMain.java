@@ -29,7 +29,7 @@ public class BiInitMain {
             Connection connection = factory.newConnection();
             Channel channel = connection.createChannel();
 
-            channel.exchangeDeclare(RabbitmqConstant.BI_EXCHANGE_NAME, BuiltinExchangeType.DIRECT);
+            channel.exchangeDeclare(RabbitmqConstant.BI_EXCHANGE_NAME, BuiltinExchangeType.DIRECT,true);
 
             //  创建队列
             channel.queueDeclare(RabbitmqConstant.BI_QUEUE_NAME, true, false, false, null);

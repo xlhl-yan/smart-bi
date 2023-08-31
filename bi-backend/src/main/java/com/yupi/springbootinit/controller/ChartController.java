@@ -1,10 +1,14 @@
 package com.yupi.springbootinit.controller;
 
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yupi.springbootinit.annotation.AuthCheck;
-import com.yupi.springbootinit.common.*;
+import com.yupi.springbootinit.common.BaseResponse;
+import com.yupi.springbootinit.common.DeleteRequest;
+import com.yupi.springbootinit.common.ErrorCode;
+import com.yupi.springbootinit.common.ResultUtils;
 import com.yupi.springbootinit.constant.CommonConstant;
 import com.yupi.springbootinit.constant.RabbitmqConstant;
 import com.yupi.springbootinit.constant.UserConstant;
@@ -26,6 +30,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,6 +41,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.stream.Collectors;
 
 /**
  * 图表接口
@@ -64,6 +71,10 @@ public class ChartController {
     @Resource
     private BiMessageProducer biMessageProducer;
 
+
+    @Resource
+    private RedisTemplate<String, String> redisTemplate;
+
     /**
      * 文件大小 1 MB
      */
@@ -75,6 +86,36 @@ public class ChartController {
     private static final List<String> SUFFIX_LIST = Arrays.asList("xlsx", "xls");
 
     /**
+     * 失败图表任务重试
+     *
+     * @return
+     */
+    @PostMapping("/gen/async/tautology")
+    public BaseResponse<Long> tautologyGenChartByAiAsyncMq(HttpServletRequest request,
+                                                           ChartTautologyRequest chartTautologyRequest) {
+        //  参数验证
+        ThrowUtils.throwIf(chartTautologyRequest == null, ErrorCode.PARAMS_ERROR, "参数为空");
+        Long chartId = chartTautologyRequest.getId();
+        User loginUser = userService.getLoginUser(request);
+        Long userId = loginUser.getId();
+        QueryWrapper<Chart> wrapper = new QueryWrapper<>();
+        wrapper.eq("userId", userId);
+        wrapper.eq("id", chartId);
+        wrapper.eq("status", ChartStatusEnum.FAIL.getCode());
+        Chart chart = chartService.getOne(wrapper);
+
+        ThrowUtils.throwIf(chart == null, ErrorCode.NOT_FOUND_ERROR, "未能查询到此图表信息");
+        //  发送消息
+        biMessageProducer.sendMessage(
+                RabbitmqConstant.BI_EXCHANGE_NAME,
+                RabbitmqConstant.BI_ROUTING_KEY,
+                String.valueOf(chartId)
+        );
+
+        return ResultUtils.success(chartId);
+    }
+
+    /**
      * 同步分析
      *
      * @param multipartFile
@@ -84,10 +125,9 @@ public class ChartController {
      */
     @PostMapping("/gen/sync")
     public BaseResponse<BiResponse> genChartByAiSync(@RequestPart("file") MultipartFile multipartFile,
-                                                 GenChartByAiRequest genChartByAiRequest,
-                                                 HttpServletRequest request) {
+                                                     GenChartByAiRequest genChartByAiRequest,
+                                                     HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
-        ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
         redisLimiterManager.doRateLimit(String.format("genChartByAiSync_%s", loginUser.getId()), 1L);
 
         //  校验
@@ -165,11 +205,10 @@ public class ChartController {
      */
     @PostMapping("/gen/async")
     public BaseResponse<BiResponse> genChartByAiAsync(@RequestPart("file") MultipartFile multipartFile,
-                                                 GenChartByAiRequest genChartByAiRequest,
-                                                 HttpServletRequest request) {
+                                                      GenChartByAiRequest genChartByAiRequest,
+                                                      HttpServletRequest request) {
         //  限流
         User loginUser = userService.getLoginUser(request);
-        ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
         redisLimiterManager.doRateLimit(String.format("genChartByAiAsync_%s", loginUser.getId()), 1L);
         //  校验
         String name = genChartByAiRequest.getName();
@@ -262,8 +301,8 @@ public class ChartController {
      */
     @PostMapping("/gen/async/mq")
     public BaseResponse<BiResponse> genChartByAiAsyncMq(@RequestPart("file") MultipartFile multipartFile,
-                                                      GenChartByAiRequest genChartByAiRequest,
-                                                      HttpServletRequest request) {
+                                                        GenChartByAiRequest genChartByAiRequest,
+                                                        HttpServletRequest request) {
         //  限流
         User loginUser = userService.getLoginUser(request);
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
@@ -276,14 +315,18 @@ public class ChartController {
         ThrowUtils.throwIf(StringUtils.isBlank(name) || name.length() >= 100, ErrorCode.PARAMS_ERROR, "名称过长");
         ThrowUtils.throwIf(StringUtils.isBlank(goal), ErrorCode.PARAMS_ERROR, "目标不能为空");
         //  校验文件大小
-        long filesize = multipartFile.getSize();
-        String filename = multipartFile.getOriginalFilename();
-        ThrowUtils.throwIf(filesize > FILE_MAX_SIZE, ErrorCode.PARAMS_ERROR, "文件过大");
-        //  文件后缀
-        String suffix = FileUtil.getSuffix(filename);
-        ThrowUtils.throwIf(!SUFFIX_LIST.contains(suffix), ErrorCode.PARAMS_ERROR, "文件类型不符合要求");
-        //  读取用户上传文件 并压缩为 CSV
-        String csv = ExcelUtils.excelToCsv(multipartFile);
+        String csv = "";
+        if (multipartFile != null) {
+            long filesize = multipartFile.getSize();
+            String filename = multipartFile.getOriginalFilename();
+            ThrowUtils.throwIf(filesize > FILE_MAX_SIZE, ErrorCode.PARAMS_ERROR, "文件过大");
+            //  文件后缀
+            String suffix = FileUtil.getSuffix(filename);
+            ThrowUtils.throwIf(!SUFFIX_LIST.contains(suffix), ErrorCode.PARAMS_ERROR, "文件类型不符合要求");
+            //  读取用户上传文件 并压缩为 CSV
+            csv = ExcelUtils.excelToCsv(multipartFile);
+        }
+
         //  插入数据到数据库
         Chart chart = new Chart();
         chart.setName(name);
@@ -294,6 +337,7 @@ public class ChartController {
         chart.setStatus(ChartStatusEnum.NOT_YET.getCode());
         boolean save = chartService.save(chart);
         ThrowUtils.throwIf(!save, ErrorCode.SYSTEM_ERROR, "数据保存失败");
+
 
         biMessageProducer.sendMessage(
                 RabbitmqConstant.BI_EXCHANGE_NAME,
@@ -412,24 +456,6 @@ public class ChartController {
         return ResultUtils.success(chart);
     }
 
-    /**
-     * 分页获取列表（封装类）
-     *
-     * @param chartQueryRequest
-     * @param request
-     * @return
-     */
-    @PostMapping("/list/page/vo")
-    public BaseResponse<Page<Chart>> listChartByPage(@RequestBody ChartQueryRequest chartQueryRequest,
-                                                     HttpServletRequest request) {
-        long current = chartQueryRequest.getCurrent();
-        long size = chartQueryRequest.getPageSize();
-        // 限制爬虫
-        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-        Page<Chart> chartPage = chartService.page(new Page<>(current, size),
-                this.getQueryWrapper(chartQueryRequest));
-        return ResultUtils.success(chartPage);
-    }
 
     /**
      * 分页获取当前用户创建的资源列表
@@ -447,10 +473,35 @@ public class ChartController {
         chartQueryRequest.setUserId(loginUser.getId());
         long current = chartQueryRequest.getCurrent();
         long size = chartQueryRequest.getPageSize();
+
+        HashOperations<String, String, String> opsForHash = redisTemplate.opsForHash();
+
+
+        String cachePage = opsForHash.get(CommonConstant.REDISSON_KEY + loginUser.getId(), current);
+        if (StringUtils.isNotBlank(cachePage)) {
+            String name = chartQueryRequest.getName();
+            Page<Chart> page = JSONUtil.toBean(cachePage, Page.class);
+            if (StringUtils.isBlank(name)) {
+                return ResultUtils.success(page);
+            }
+            List<Chart> records = page.getRecords();
+            List<Chart> collect = records.stream().filter(element -> element.getName().contains(name)).collect(Collectors.toList());
+
+            return ResultUtils.success(page.setRecords(collect));
+        }
+
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
         Page<Chart> chartPage = chartService.page(new Page<>(current, size),
                 this.getQueryWrapper(chartQueryRequest));
+
+        opsForHash.put(
+                //  用户id
+                CommonConstant.REDISSON_KEY + loginUser.getId(),
+                //  当前页
+                String.valueOf(current),
+                //  内容
+                JSONUtil.toJsonStr(chartPage));
         return ResultUtils.success(chartPage);
     }
 
@@ -502,7 +553,6 @@ public class ChartController {
         Long userId = chartQueryRequest.getUserId();
         String name = chartQueryRequest.getName();
         String chartType = chartQueryRequest.getChartType();
-
         // 拼接查询条件
         queryWrapper.eq(id != null && id < 0, "id", id);
         queryWrapper.eq(StringUtils.isNotBlank(goal), "goal", goal);

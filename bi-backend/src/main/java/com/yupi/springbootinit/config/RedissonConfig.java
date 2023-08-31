@@ -31,7 +31,6 @@ public class RedissonConfig {
         config.useSingleServer()
                 .setDatabase(2)
                 .setAddress(String.format("redis://%s:%s", host, port));
-
         return Redisson.create(config);
     }
 }

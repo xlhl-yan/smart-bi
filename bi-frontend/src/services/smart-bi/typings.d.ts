@@ -322,6 +322,10 @@ declare namespace API {
     userId?: number;
   };
 
+  type tautologyGenChartByAiAsyncMqUsingPOSTParams = {
+    id?: number;
+  };
+
   type uploadFileUsingPOSTParams = {
     biz?: string;
   };

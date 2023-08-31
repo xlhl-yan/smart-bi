@@ -21,6 +21,11 @@ public class ChartQueryRequest extends PageRequest implements Serializable {
     private Long id;
 
     /**
+     * 搜索关键字
+     */
+    private String searchText;
+
+    /**
      * 图表名称
      */
     private String name;

@@ -129,6 +129,21 @@ export async function genChartByAiAsyncMqUsingPOST(
   });
 }
 
+/** tautologyGenChartByAiAsyncMq POST /api/chart/gen/async/tautology */
+export async function tautologyGenChartByAiAsyncMqUsingPOST(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.tautologyGenChartByAiAsyncMqUsingPOSTParams,
+  options?: { [key: string]: any },
+) {
+  return request<API.BaseResponseLong_>('/api/chart/gen/async/tautology', {
+    method: 'POST',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
 /** genChartByAiSync POST /api/chart/gen/sync */
 export async function genChartByAiSyncUsingPOST(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
